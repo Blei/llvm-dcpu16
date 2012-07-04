@@ -86,6 +86,10 @@ private:
   /// indicates which operands are the expanded version of the input.
   DenseMap<SDValue, std::pair<SDValue, SDValue> > ExpandedIntegers;
 
+  /// ExpandedChains - For chains to nodes that need to be expanded this map
+  /// indicates which chains are the expanded version of the input.
+  DenseMap<SDValue, std::pair<SDValue, SDValue> > ExpandedChains;
+
   /// SoftenedFloats - For floating point nodes converted to integers of
   /// the same size, this map indicates the converted value to use.
   DenseMap<SDValue, SDValue> SoftenedFloats;
@@ -301,6 +305,14 @@ private:
   /// Op, and Hi being equal to the upper 32 bits.
   void GetExpandedInteger(SDValue Op, SDValue &Lo, SDValue &Hi);
   void SetExpandedInteger(SDValue Op, SDValue Lo, SDValue Hi);
+
+  /// GetExpandedChain - Given a chain of a processed node which was expanded
+  /// into two chains for two integers of half the size, this returns the two
+  /// chains. The Lo chain is corresponds to the node handling the low bits;
+  /// the Hi chain corresponds to the high bits. Returns true if an expanded
+  /// chain exists, false otherwise.
+  bool GetExpandedChain(SDValue Chain, SDValue &Lo, SDValue &Hi);
+  void SetExpandedChain(SDValue Chain, SDValue Lo, SDValue Hi);
 
   // Integer Result Expansion.
   void ExpandIntegerResult(SDNode *N, unsigned ResNo);

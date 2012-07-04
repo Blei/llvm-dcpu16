@@ -228,8 +228,10 @@ void DAGTypeLegalizer::ExpandRes_NormalLoad(SDNode *N, SDValue &Lo,
 
   // Build a factor node to remember that this load is independent of the
   // other one.
-  Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other, Lo.getValue(1),
-                      Hi.getValue(1));
+  SDValue LoChain = Lo.getValue(1);
+  SDValue HiChain = Hi.getValue(1);
+  Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other, LoChain, HiChain);
+  SetExpandedChain(Chain, LoChain, HiChain);
 
   // Handle endianness of the load.
   if (TLI.isBigEndian())
@@ -402,21 +404,25 @@ SDValue DAGTypeLegalizer::ExpandOp_NormalStore(SDNode *N, unsigned OpNo) {
 
   SDValue Lo, Hi;
   GetExpandedOp(St->getValue(), Lo, Hi);
+  SDValue LoChain, HiChain;
+  if (!GetExpandedChain(Chain, LoChain, HiChain))
+    LoChain = HiChain = Chain;
 
-  if (TLI.isBigEndian())
+  if (TLI.isBigEndian()) {
     std::swap(Lo, Hi);
+    std::swap(LoChain, HiChain);
+  }
 
-  Lo = DAG.getStore(Chain, dl, Lo, Ptr, St->getPointerInfo(),
+  Lo = DAG.getStore(LoChain, dl, Lo, Ptr, St->getPointerInfo(),
                     isVolatile, isNonTemporal, Alignment);
 
   Ptr = DAG.getNode(ISD::ADD, dl, Ptr.getValueType(), Ptr,
                     DAG.getIntPtrConstant(IncrementSize));
   assert(isTypeLegal(Ptr.getValueType()) && "Pointers must be legal!");
-  Hi = DAG.getStore(Chain, dl, Hi, Ptr,
+  Hi = DAG.getStore(HiChain, dl, Hi, Ptr,
                     St->getPointerInfo().getWithOffset(IncrementSize),
                     isVolatile, isNonTemporal,
                     MinAlign(Alignment, IncrementSize));
-
   return DAG.getNode(ISD::TokenFactor, dl, MVT::Other, Lo, Hi);
 }
 

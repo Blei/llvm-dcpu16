@@ -789,6 +789,38 @@ void DAGTypeLegalizer::SetExpandedInteger(SDValue Op, SDValue Lo,
   Entry.second = Hi;
 }
 
+bool DAGTypeLegalizer::GetExpandedChain(SDValue Chain, SDValue &Lo,
+                                        SDValue &Hi) {
+  std::pair<SDValue, SDValue> &Entry = ExpandedChains[Chain];
+  /*
+  RemapValue(Entry.first);
+  RemapValue(Entry.second);
+  assert(Entry.first.getNode() && "Chain isn't expanded");
+  */
+  Lo = Entry.first;
+  Hi = Entry.second;
+  return Entry.first.getNode() != NULL;
+}
+
+void DAGTypeLegalizer::SetExpandedChain(SDValue Chain, SDValue Lo,
+                                        SDValue Hi) {
+  /*
+  assert(Lo.getValueType() ==
+         TLI.getTypeToTransformTo(*DAG.getContext(), Op.getValueType()) &&
+         Hi.getValueType() == Lo.getValueType() &&
+         "Invalid type for expanded integer");
+  // Lo/Hi may have been newly allocated, if so, add nodeid's as relevant.
+  AnalyzeNewValue(Lo);
+  AnalyzeNewValue(Hi);
+  */
+
+  // Remember that this is the result of the node.
+  std::pair<SDValue, SDValue> &Entry = ExpandedChains[Chain];
+  assert(Entry.first.getNode() == 0 && "Chain already expanded");
+  Entry.first = Lo;
+  Entry.second = Hi;
+}
+
 void DAGTypeLegalizer::GetExpandedFloat(SDValue Op, SDValue &Lo,
                                         SDValue &Hi) {
   std::pair<SDValue, SDValue> &Entry = ExpandedFloats[Op];
