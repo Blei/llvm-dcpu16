@@ -349,9 +349,9 @@ XCoreFrameLowering::processFunctionBeforeCalleeSavedScan(MachineFunction &MF,
     int FrameIdx;
     if (! isVarArg) {
       // A fixed offset of 0 allows us to save / restore LR using entsp / retsp.
-      FrameIdx = MFI->CreateFixedObject(RC->getSize(), 0, true);
+      FrameIdx = MFI->CreateFixedObject(RC->getSize() / 8, 0, true);
     } else {
-      FrameIdx = MFI->CreateStackObject(RC->getSize(), RC->getAlignment(),
+      FrameIdx = MFI->CreateStackObject(RC->getSize() / 8, RC->getAlignment() / 8,
                                         false);
     }
     XFI->setUsesLR(FrameIdx);
@@ -359,15 +359,15 @@ XCoreFrameLowering::processFunctionBeforeCalleeSavedScan(MachineFunction &MF,
   }
   if (RegInfo->requiresRegisterScavenging(MF)) {
     // Reserve a slot close to SP or frame pointer.
-    RS->setScavengingFrameIndex(MFI->CreateStackObject(RC->getSize(),
-                                                       RC->getAlignment(),
+    RS->setScavengingFrameIndex(MFI->CreateStackObject(RC->getSize() / 8,
+                                                       RC->getAlignment() / 8,
                                                        false));
   }
   if (hasFP(MF)) {
     // A callee save register is used to hold the FP.
     // This needs saving / restoring in the epilogue / prologue.
-    XFI->setFPSpillSlot(MFI->CreateStackObject(RC->getSize(),
-                                               RC->getAlignment(),
+    XFI->setFPSpillSlot(MFI->CreateStackObject(RC->getSize() / 8,
+                                               RC->getAlignment() / 8,
                                                false));
   }
 }
